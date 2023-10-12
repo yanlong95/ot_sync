@@ -11,8 +11,11 @@ training_config:
 
 valid_config:
   valid_seqs: ["botanical_garden"]
-  valid_weights: "/home/vectr/PycharmProjects/overlap_transformer/weights/pretrained_overlap_transformer99.pth.tar"
   gt_file: "/home/vectr/Documents/Dataset/gt_overlap/botanical_garden_test/loop_gt_seq00_0.3overlap_inactive.npz"
+
+  valid_scan_folder: "/home/vectr/Documents/Dataset/train/botanical_garden/depth_map"
+  valid_scan_poses: "/home/vectr/Documents/Dataset/train/botanical_garden/poses/poses.txt"
+  valid_ground_truth: "/home/vectr/Documents/Dataset/train/botanical_garden/overlaps/validation_set.npz"
 
 test_config:
   test_seqs: ["botanical_garden"]
