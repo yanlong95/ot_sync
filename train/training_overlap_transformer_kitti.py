@@ -25,11 +25,12 @@ np.set_printoptions(threshold=sys.maxsize)
 import modules.loss as PNV_loss
 from tools.utils.utils import *
 from valid.valid_seq import validate_seq_faiss
+from valid.valid_seq_os1_rewrite import validation
 import yaml
 
 
 class trainHandler():
-    def __init__(self, height=64, width=900, channels=5, norm_layer=None, use_transformer=True, lr=0.001,
+    def __init__(self, height=64, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.001,
                  data_root_folder=None, train_set=None, training_seqs=None):
         super(trainHandler, self).__init__()
 
@@ -50,7 +51,7 @@ class trainHandler():
         self.optimizer = torch.optim.Adam(self.parameters, self.learning_rate)
 
         # self.optimizer = torch.optim.SGD(self.parameters, lr=self.learning_rate, momentum=0.9)
-        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=0.9)
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=1.0)
         # self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.98)
 
         self.traindata_npzfiles = train_set
@@ -59,18 +60,14 @@ class trainHandler():
             overlap_orientation_npz_file2string_string_nparray(self.traindata_npzfiles)
 
         """change the args for resuming training process"""
-        self.resume = False
-        self.save_name = "../weights/pretrained_overlap_transformer1.pth.tar"
+        self.resume = True
+        self.save_name = "../weights/pretrained_overlap_transformer37.pth.tar"
 
         """overlap threshold follows OverlapNet"""
         self.overlap_thresh = 0.3
 
-        """temporary debug for validation"""
-        self.just_val = False
-
     def train(self):
-
-        epochs = 100
+        epochs = 60
         """resume from the saved model"""
         if self.resume:
             resume_filename = self.save_name
@@ -190,7 +187,7 @@ class trainHandler():
 
             """save trained weights and optimizer states"""
             # self.save_name = "../weights/pretrained_overlap_transformer"+str(i)+".pth.tar"
-            self.save_name = "../weights/temp/pretrained_overlap_transformer"+str(i)+".pth.tar"
+            self.save_name = "../weights/pretrained_overlap_transformer"+str(i)+".pth.tar"
 
             torch.save({
                 'epoch': i,
@@ -203,10 +200,11 @@ class trainHandler():
 
             writer1.add_scalar("loss", loss_each_epoch / used_num, global_step=i)
 
-            # with torch.no_grad():
-            #     # top1_rate = validate_seq_faiss(self.amodel, "02")
-            #     top1_rate = validate_seq_faiss(self.amodel, "botanical_garden")
-            #     writer1.add_scalar("top1_rate", top1_rate, global_step=i)
+            with torch.no_grad():
+                # top1_rate = validate_seq_faiss(self.amodel, "02")
+                # top1_rate = validate_seq_faiss(self.amodel, "botanical_garden")
+                top10_rate = validation(self.amodel)
+                writer1.add_scalar("top10_rate", top10_rate, global_step=i)
 
 
 if __name__ == '__main__':
@@ -219,8 +217,8 @@ if __name__ == '__main__':
     # ============================================================================
 
     # along the lines of OverlapNet
-    # traindata_npzfiles = [os.path.join(data_root_folder, seq, 'overlaps/train_set.npz') for seq in training_seqs]
-    traindata_npzfiles = [os.path.join(data_root_folder, seq, 'overlaps/train_set_reduced.npz') for seq in training_seqs]
+    traindata_npzfiles = [os.path.join(data_root_folder, seq, 'overlaps/train_set.npz') for seq in training_seqs]
+    # traindata_npzfiles = [os.path.join(data_root_folder, seq, 'overlaps/train_set_reduced.npz') for seq in training_seqs]
 
     """
         trainHandler to handle with training process.
@@ -238,7 +236,7 @@ if __name__ == '__main__':
     # train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.000005,
     #                              data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs = training_seqs)
 
-    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.001,
+    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.00005,
                                  data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
 
     train_handler.train()

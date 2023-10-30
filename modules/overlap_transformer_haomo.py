@@ -21,7 +21,7 @@ import torch.nn.functional as F
 
 
 class featureExtracter(nn.Module):
-    def __init__(self, height=64, width=900, channels=5, norm_layer=None, use_transformer = True):
+    def __init__(self, height=64, width=900, channels=1, norm_layer=None, use_transformer=True):
         super(featureExtracter, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d   # number of channels

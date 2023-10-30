@@ -1,0 +1,5 @@
+# temp file to record the best model parameters
+lr = 0.00005
+scheduler = step_size = 5, gamma = 0.9
+batch_size = 6, 6
+margin_1 = 0.5

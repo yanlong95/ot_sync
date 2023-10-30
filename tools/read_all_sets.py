@@ -49,6 +49,14 @@ def overlap_orientation_npz_file2string_string_nparray(npzfilenames, shuffle=Tru
         dir2_all.extend(dir2)
         overlap_all.extend(overlap)
 
+        # if shuffle:
+        #     shuffled_idx = np.random.permutation(overlap_all.shape[0])
+        #     imgf1_all = (np.array(imgf1_all)[shuffled_idx]).tolist()
+        #     imgf2_all = (np.array(imgf2_all)[shuffled_idx]).tolist()
+        #     dir1_all = (np.array(dir1_all)[shuffled_idx]).tolist()
+        #     dir2_all = (np.array(dir2_all)[shuffled_idx]).tolist()
+        #     overlap_all = overlap_all[shuffled_idx]
+
     return (imgf1_all, imgf2_all, dir1_all, dir2_all, np.asarray(overlap_all))
 
 
