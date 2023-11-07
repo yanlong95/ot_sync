@@ -29,7 +29,7 @@ from tools.read_all_sets import overlap_orientation_npz_file2string_string_nparr
 """
 def read_one_need_from_seq(data_root_folder, file_num, seq_num):
     depth_data = \
-        np.array(cv2.imread(data_root_folder + seq_num + "/depth_map/" + file_num + ".png",
+        np.array(cv2.imread(data_root_folder + seq_num + "/depth/" + file_num + ".png",
                             cv2.IMREAD_GRAYSCALE))
     depth_data_tensor = torch.from_numpy(depth_data).type(torch.FloatTensor).cuda()
     depth_data_tensor = torch.unsqueeze(depth_data_tensor, dim=0)
@@ -74,7 +74,7 @@ def read_one_batch_pos_neg(data_root_folder, f1_index, f1_seq, train_imgf1, trai
                 neg_num = neg_num + 1
 
             depth_data_r = \
-                np.array(cv2.imread(data_root_folder + train_dir2[j] + "/depth_map/" + train_imgf2[j] + ".png",
+                np.array(cv2.imread(data_root_folder + train_dir2[j] + "/depth/" + train_imgf2[j] + ".png",
                             cv2.IMREAD_GRAYSCALE))
 
             depth_data_tensor_r = torch.from_numpy(depth_data_r).type(torch.FloatTensor).cuda()

@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="overlap_transformer" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="overlaptransformer" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="overlap_transformer" project-jdk-type="Python SDK" />
 </project>

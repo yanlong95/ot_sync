@@ -1,25 +1,31 @@
 data_root:
   # botanical_garden and court_of_science
-  data_root_folder: "/home/vectr/Documents/Dataset/train/"
-  valid_scan_folder: "/home/vectr/Documents/Dataset/train/botanical_garden/depth_map"
-  valid_scan_poses: "/home/vectr/Documents/Dataset/train/botanical_garden/poses/poses.txt"      # for visualization
-  gt_valid_folder: "/home/vectr/Documents/Dataset/train/botanical_garden/overlaps/overlaps_val"
+  data_root_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/"
+#  valid_scan_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/botanical_garden/depth"
+#  valid_scan_poses: "/home/vectr/Documents/Dataset/overlap_transformer/train/botanical_garden/poses/poses.txt"      # for visualization
+#  gt_valid_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/botanical_garden/overlaps/overlaps_val"
 
 training_config:
   # sequences for training (botanical_garden and cour_of_sciences)
   training_seqs: ["botanical_garden", "court_of_sciences"]
-
+#  training_seqs: [ "bomb_shelter", "botanical_garden", "bruin_plaza", "court_of_sciences", "dickson_court", "kerckhoff",
+#                   "luskin" ]
 
 valid_config:
-  valid_seqs: ["botanical_garden"]
-  valid_scan_folder: "/home/vectr/Documents/Dataset/train/botanical_garden/depth_map"
-  gt_valid_folder: "/home/vectr/Documents/Dataset/train/botanical_garden/overlaps/overlaps_val"
-
+  valid_seqs: ["geo_loop"]
+  valid_scan_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop/depth"
+  gt_valid_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop/overlaps/overlaps_val"
 
 test_config:
   test_seqs: ["botanical_garden"]
   test_weights: "/home/vectr/PycharmProjects/overlap_transformer/weights/"
+  keyframes: "/home/vectr/Documents/Dataset/overlap_transformer/keyframes/botanical_garden"
   gt_file: "/home/vectr/Documents/Dataset/gt_overlap/botanical_garden_test/loop_gt_seq00_0.3overlap_inactive_20_60.npz"
+
+#test_config:
+#  test_seqs: ["botanical_garden"]
+#  test_weights: "/home/vectr/PycharmProjects/overlap_transformer/weights/"
+#  gt_file: "/home/vectr/Documents/Dataset/gt_overlap/botanical_garden_test/loop_gt_seq00_0.3overlap_inactive_20_60.npz"
 
 #viz_config:
 #  # calibration file from KITTI 00

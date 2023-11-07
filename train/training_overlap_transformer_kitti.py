@@ -25,12 +25,12 @@ np.set_printoptions(threshold=sys.maxsize)
 import modules.loss as PNV_loss
 from tools.utils.utils import *
 from valid.valid_seq import validate_seq_faiss
-from valid.valid_seq_os1_rewrite import validation
+from valid.valid_seq_os1_rewrite_new import validation
 import yaml
 
 
 class trainHandler():
-    def __init__(self, height=64, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.001,
+    def __init__(self, height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.001,
                  data_root_folder=None, train_set=None, training_seqs=None):
         super(trainHandler, self).__init__()
 
@@ -60,14 +60,14 @@ class trainHandler():
             overlap_orientation_npz_file2string_string_nparray(self.traindata_npzfiles)
 
         """change the args for resuming training process"""
-        self.resume = True
-        self.save_name = "../weights/pretrained_overlap_transformer37.pth.tar"
+        self.resume = False
+        self.save_name = "../weights/pretrained_overlap_transformer_full9.pth.tar"
 
         """overlap threshold follows OverlapNet"""
         self.overlap_thresh = 0.3
 
     def train(self):
-        epochs = 60
+        epochs = 40
         """resume from the saved model"""
         if self.resume:
             resume_filename = self.save_name
@@ -187,7 +187,7 @@ class trainHandler():
 
             """save trained weights and optimizer states"""
             # self.save_name = "../weights/pretrained_overlap_transformer"+str(i)+".pth.tar"
-            self.save_name = "../weights/pretrained_overlap_transformer"+str(i)+".pth.tar"
+            self.save_name = "../weights/pretrained_overlap_transformer_full_test"+str(i)+".pth.tar"
 
             torch.save({
                 'epoch': i,
@@ -209,8 +209,7 @@ class trainHandler():
 
 if __name__ == '__main__':
     # load config ================================================================
-    # config_filename = '../config/config.yml'
-    config_filename = '../config/config_os1.yml'
+    config_filename = '../config/config_os1_rewrite.yml'
     config = yaml.safe_load(open(config_filename))
     data_root_folder = config["data_root"]["data_root_folder"]
     training_seqs = config["training_config"]["training_seqs"]
@@ -218,8 +217,6 @@ if __name__ == '__main__':
 
     # along the lines of OverlapNet
     traindata_npzfiles = [os.path.join(data_root_folder, seq, 'overlaps/train_set.npz') for seq in training_seqs]
-    # traindata_npzfiles = [os.path.join(data_root_folder, seq, 'overlaps/train_set_reduced.npz') for seq in training_seqs]
-
     """
         trainHandler to handle with training process.
         Args:
@@ -234,9 +231,9 @@ if __name__ == '__main__':
             training_seqs: sequences number for training (alone the lines of OverlapNet).
     """
     # train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.000005,
-    #                              data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs = training_seqs)
+    #                              data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
 
-    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.00005,
+    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.0005,
                                  data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
 
     train_handler.train()
