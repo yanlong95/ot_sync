@@ -7,9 +7,9 @@ data_root:
 
 training_config:
   # sequences for training (botanical_garden and cour_of_sciences)
-  training_seqs: ["botanical_garden", "court_of_sciences"]
-#  training_seqs: [ "bomb_shelter", "botanical_garden", "bruin_plaza", "court_of_sciences", "dickson_court", "kerckhoff",
-#                   "luskin" ]
+#  training_seqs: ["botanical_garden", "court_of_sciences"]
+  training_seqs: [ "bomb_shelter", "botanical_garden", "bruin_plaza", "court_of_sciences", "dickson_court", "kerckhoff",
+                   "luskin" ]
 
 valid_config:
   valid_seqs: ["geo_loop"]
@@ -17,10 +17,10 @@ valid_config:
   gt_valid_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop/overlaps/overlaps_val"
 
 test_config:
-  test_seqs: ["botanical_garden"]
-  test_weights: "/home/vectr/PycharmProjects/overlap_transformer/weights/"
-  keyframes: "/home/vectr/Documents/Dataset/overlap_transformer/keyframes/botanical_garden"
-  gt_file: "/home/vectr/Documents/Dataset/gt_overlap/botanical_garden_test/loop_gt_seq00_0.3overlap_inactive_20_60.npz"
+  test_seqs: ["royce_hall"]
+  test_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/royce_hall"
+  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer37.pth.tar"
+  keyframes: "/home/vectr/Documents/Dataset/overlap_transformer//keyframes/royce_hall"
 
 #test_config:
 #  test_seqs: ["botanical_garden"]

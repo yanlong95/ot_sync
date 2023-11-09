@@ -60,14 +60,14 @@ class trainHandler():
             overlap_orientation_npz_file2string_string_nparray(self.traindata_npzfiles)
 
         """change the args for resuming training process"""
-        self.resume = False
-        self.save_name = "../weights/pretrained_overlap_transformer_full9.pth.tar"
+        self.resume = True
+        self.save_name = "../weights/pretrained_overlap_transformer_full_test22.pth.tar"
 
         """overlap threshold follows OverlapNet"""
         self.overlap_thresh = 0.3
 
     def train(self):
-        epochs = 40
+        epochs = 50
         """resume from the saved model"""
         if self.resume:
             resume_filename = self.save_name
@@ -163,7 +163,7 @@ class trainHandler():
                     triplet_loss: Lazy for pos
                     triplet_loss_inv: Lazy for neg
                 """
-                loss = PNV_loss.triplet_loss(o1, o2, o3, MARGIN_1, lazy=False)
+                loss = PNV_loss.triplet_loss(o1, o2, o3, MARGIN_1, lazy=False, ignore_zero_loss=True)
 
                 if loss == -1:
                     continue
@@ -233,7 +233,7 @@ if __name__ == '__main__':
     # train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.000005,
     #                              data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
 
-    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.0005,
+    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.00005,
                                  data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
 
     train_handler.train()
