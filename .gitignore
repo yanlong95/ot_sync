@@ -2,3 +2,6 @@ gen_gt_overlap
 Haomo_Dataset
 kitti_dataset
 weights
+descriptors
+test/geo_loop
+.ideas

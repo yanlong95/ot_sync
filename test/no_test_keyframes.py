@@ -22,8 +22,9 @@ import cv2
 
 
 def read_image(image_path):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     depth_data = np.array(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE))
-    depth_data_tensor = torch.from_numpy(depth_data).type(torch.FloatTensor).cuda()
+    depth_data_tensor = torch.from_numpy(depth_data).type(torch.FloatTensor).to(device)
     depth_data_tensor = torch.unsqueeze(depth_data_tensor, dim=0)
     depth_data_tensor = torch.unsqueeze(depth_data_tensor, dim=0)
 
@@ -82,73 +83,6 @@ def calc_descriptors(images, amodel):
     return descriptors
 
 
-def calc_top_n(keyframe_poses, keyframe_descriptors, test_frame_poses, test_frame_descriptors):
-    num_test_frame = len(test_frame_poses)
-
-    # initial searching
-    nlist = 1
-    k = 5
-    dim_pose = 3
-    dim_descriptor = 256
-
-    quantizer_poses = faiss.IndexFlatL2(dim_pose)
-    quantizer_descriptors = faiss.IndexFlatL2(dim_descriptor)
-
-    index_poses = faiss.IndexIVFFlat(quantizer_poses, dim_pose, nlist, faiss.METRIC_L2)
-    index_descriptors = faiss.IndexIVFFlat(quantizer_descriptors, dim_pose, nlist, faiss.METRIC_L2)
-
-    if not index_poses.is_trained:
-        index_poses.train(keyframe_poses)
-
-    if not index_descriptors.is_trained:
-        index_descriptors.train(keyframe_descriptors)
-
-    index_poses.add(keyframe_poses)
-    index_descriptors.add(keyframe_descriptors)
-
-    for curr_frame_idx in range(num_test_frame):
-        curr_frame_pose = test_frame_poses[curr_frame_idx, :]
-        curr_frame_descriptor = test_frame_descriptors[curr_frame_idx, :]
-
-        # searching top n poses and descriptors
-        D_pose, I_pose = index_poses.search(curr_frame_pose, k)
-        D_descriptor, I_descriptor = index_descriptors.search(curr_frame_descriptor, k)
-
-        #
-
-
-
-def testHandler(keyframe_path, test_frame_path, weights_path, test_selection=1):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    amodel = featureExtracter(height=32, width=900, channels=1, use_transformer=True).to(device)
-
-    with torch.no_grad():
-        # load model
-        print(f'Load weights from {weights_path}')
-        checkpoint = torch.load(weights_path)
-        amodel.load_state_dict(checkpoint['state_dict'])
-
-        # calculate ground truth and descriptors
-        keyframe_images, keyframe_poses = load_keyframes(keyframe_path)
-        test_frame_images, test_frame_poses = load_test_frames(test_frame_path)
-
-        keyframe_locs, _ = calc_ground_truth(keyframe_poses)
-        test_frame_locs_full, _ = calc_ground_truth(test_frame_poses)
-
-        # keyframe_descriptors = calc_descriptors(keyframe_images, amodel)
-        # test_frame_descriptors_full = calc_descriptors(test_frame_images, amodel)
-        #
-        # # select 1 sample per test_selection samples, reduce the test size
-        # test_frame_locs = test_frame_locs_full[::test_selection]
-        # test_frame_descriptors = test_frame_descriptors_full[::test_selection]
-
-        # test 2d plot
-        # keyframe_poses_plot(test_frame_locs_full, keyframe_locs)
-
-        # test voronoi map
-        calc_voronoi_map(keyframe_locs)
-
-
 def calc_voronoi_map(keyframe_poses):
     xy = keyframe_poses[:, :2]
     voronoi = Voronoi(xy, incremental=True)
@@ -196,16 +130,135 @@ def calc_voronoi_map(keyframe_poses):
         if tri.find_simplex(point) < 0:                     # True if the point lies outside the region
             print(f'point {i} lies outside the region.')
 
-        fig = voronoi_plot_2d(voronoi)
-        plt.scatter(point[0], point[1], c='b', s=50, label='center')
-        plt.scatter(vertex[:, 0], vertex[:, 1], c='r', s=100, label='vertices')
-        plt.legend()
-        plt.show()
+        # fig = voronoi_plot_2d(voronoi)
+        # plt.scatter(point[0], point[1], c='b', s=50, label='center')
+        # plt.scatter(vertex[:, 0], vertex[:, 1], c='r', s=100, label='vertices')
+        # plt.legend()
+        # plt.show()
 
     # fig = voronoi_plot_2d(voronoi)
     # plt.show()
 
-    return delaunay_triangulation, voronoi_centers
+    return delaunay_triangulation, voronoi
+
+
+def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, test_frame_poses, test_frame_descriptors):
+    num_test_frame = len(test_frame_poses)
+
+    # initial searching
+    nlist = 1
+    k = 5
+    dim_pose = 3
+    dim_descriptor = 256
+
+    quantizer_poses = faiss.IndexFlatL2(dim_pose)
+    quantizer_descriptors = faiss.IndexFlatL2(dim_descriptor)
+
+    index_poses = faiss.IndexIVFFlat(quantizer_poses, dim_pose, nlist, faiss.METRIC_L2)
+    index_descriptors = faiss.IndexIVFFlat(quantizer_descriptors, dim_descriptor, nlist, faiss.METRIC_L2)
+
+    if not index_poses.is_trained:
+        index_poses.train(keyframe_poses)
+
+    if not index_descriptors.is_trained:
+        index_descriptors.train(keyframe_descriptors)
+
+    index_poses.add(keyframe_poses)
+    index_descriptors.add(keyframe_descriptors)
+
+    positive_pred = []
+    negative_pred = []
+    for curr_frame_idx in range(num_test_frame):
+        curr_frame_pose = test_frame_poses[curr_frame_idx, :].reshape(1, -1)                        # (dim,) to (1, dim)
+        curr_frame_descriptor = test_frame_descriptors[curr_frame_idx, :].reshape(1, -1)
+
+        # searching top n poses and descriptors
+        D_pose, I_pose = index_poses.search(curr_frame_pose, k)
+        D_descriptor, I_descriptor = index_descriptors.search(curr_frame_descriptor, k)
+
+        # determine if a point inside the regions
+        top_n_keyframes_indices = I_descriptor[0]
+        top_n_keyframes_regions = [keyframe_voronoi_region[idx] for idx in top_n_keyframes_indices]
+
+        for idx in range(k):
+            pos_2d = curr_frame_pose[0][:2]
+            region = top_n_keyframes_regions[idx]
+
+            if region.find_simplex(pos_2d) >= 0:  # True if the point lies inside the region
+                positive_pred.append(pos_2d)
+                break
+
+            if idx == k - 1:
+                negative_pred.append(pos_2d)
+
+    precision = len(positive_pred) / num_test_frame
+    print(f'Prediction precision: {precision}.')
+
+    return precision, positive_pred, negative_pred
+
+
+def prediction_plot(voronoi_map, positive_pred, negative_pred):
+    fig = voronoi_plot_2d(voronoi_map)
+    positive_points = np.array(positive_pred)
+    negative_points = np.array(negative_pred)
+
+    if len(positive_pred) > 0:
+        plt.scatter(positive_points[:, 0], positive_points[:, 1], c='g', s=50, label='positive')
+    if len(negative_pred) > 0:
+        plt.scatter(negative_points[:, 0], negative_points[:, 1], c='r', s=50, label='negative')
+    plt.legend()
+    plt.show()
+
+    # plt.scatter(vertex[:, 0], vertex[:, 1], c='r', s=100, label='vertices')
+
+
+def testHandler(keyframe_path, test_frame_path, weights_path, test_selection=1, load_descriptors=False):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    amodel = featureExtracter(height=32, width=900, channels=1, use_transformer=True).to(device)
+
+    with torch.no_grad():
+        # load model
+        print(f'Load weights from {weights_path}')
+        checkpoint = torch.load(weights_path, map_location=torch.device('cpu'))
+        amodel.load_state_dict(checkpoint['state_dict'])
+
+        # calculate ground truth and descriptors
+        keyframe_images, keyframe_poses = load_keyframes(keyframe_path)
+        test_frame_images, test_frame_poses = load_test_frames(test_frame_path)
+
+        keyframe_locs, _ = calc_ground_truth(keyframe_poses)
+        test_frame_locs_full, _ = calc_ground_truth(test_frame_poses)
+        test_frame_locs = test_frame_locs_full[::test_selection]
+
+        if load_descriptors:
+            keyframe_descriptors = np.load('/Users/yanlong/PycharmProjects/ot_sync/descriptors/keyframe_descriptors.npy')
+            test_frame_descriptors = np.load('/Users/yanlong/PycharmProjects/ot_sync/descriptors/test_frame_descriptors.npy')
+        else:
+            print('calculating descriptors for keyframe ...')
+            keyframe_descriptors = calc_descriptors(keyframe_images, amodel)
+
+            print('calculating descriptors for test frames ...')
+            test_frame_descriptors_full = calc_descriptors(test_frame_images, amodel)
+            print('finish the calculations for all the descriptors.')
+
+            # select 1 sample per test_selection samples, reduce the test size
+            test_frame_descriptors = test_frame_descriptors_full[::test_selection]
+
+            np.save('/Users/yanlong/PycharmProjects/ot_sync/descriptors/keyframe_descriptors', keyframe_descriptors)
+            np.save('/Users/yanlong/PycharmProjects/ot_sync/descriptors/test_frame_descriptors', test_frame_descriptors)
+
+        # test 2d plot
+        # keyframe_poses_plot(test_frame_locs_full, keyframe_locs)
+
+        # test voronoi map
+        keyframe_voronoi_region, voronoi_map = calc_voronoi_map(keyframe_locs)
+
+        # calculate the top n choices
+        precision, pos_pred, neg_pred = calc_top_n(keyframe_locs, keyframe_descriptors, keyframe_voronoi_region,
+                                                   test_frame_locs, test_frame_descriptors)
+
+        # show the result
+        prediction_plot(voronoi_map, pos_pred, neg_pred)
 
 
 def keyframe_poses_plot(poses, keyframe_poses, dim=2):
@@ -243,6 +296,4 @@ if __name__ == '__main__':
     keyframe_path = config["test_config"]["keyframes"]
     # ============================================================================
 
-    testHandler(keyframe_path, test_folder_path, test_weights_path)
-
-
+    testHandler(keyframe_path, test_folder_path, test_weights_path, test_selection=10, load_descriptors=True)
