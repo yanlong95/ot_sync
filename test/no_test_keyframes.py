@@ -168,6 +168,10 @@ def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, te
 
     positive_pred = []
     negative_pred = []
+    top_n_choices = []
+    positive_pred_indices = []
+    negative_pred_indices = []
+
     for curr_frame_idx in range(num_test_frame):
         curr_frame_pose = test_frame_poses[curr_frame_idx, :].reshape(1, -1)                        # (dim,) to (1, dim)
         curr_frame_descriptor = test_frame_descriptors[curr_frame_idx, :].reshape(1, -1)
@@ -179,6 +183,7 @@ def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, te
         # determine if a point inside the regions
         top_n_keyframes_indices = I_descriptor[0]
         top_n_keyframes_regions = [keyframe_voronoi_region[idx] for idx in top_n_keyframes_indices]
+        top_n_choices.append(top_n_keyframes_indices)
 
         for idx in range(k):
             pos_2d = curr_frame_pose[0][:2]
@@ -186,15 +191,17 @@ def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, te
 
             if region.find_simplex(pos_2d) >= 0:  # True if the point lies inside the region
                 positive_pred.append(pos_2d)
+                positive_pred_indices.append(curr_frame_idx)
                 break
 
             if idx == k - 1:
                 negative_pred.append(pos_2d)
+                negative_pred_indices.append(curr_frame_idx)
 
     precision = len(positive_pred) / num_test_frame
     print(f'Prediction precision: {precision}.')
 
-    return precision, positive_pred, negative_pred
+    return precision, positive_pred, negative_pred, positive_pred_indices, negative_pred_indices, top_n_choices
 
 
 def prediction_plot(voronoi_map, positive_pred, negative_pred):
@@ -210,6 +217,19 @@ def prediction_plot(voronoi_map, positive_pred, negative_pred):
     plt.show()
 
     # plt.scatter(vertex[:, 0], vertex[:, 1], c='r', s=100, label='vertices')
+
+
+def top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_poses, test_frame_poses):
+
+    for idx in positive_pred_indices:
+        top_n_choice = top_n_choices[idx]
+        top_n_keyframe_poses = np.array([keyframe_poses[i][:2] for i in top_n_choice])
+
+        plt.clf()
+        plt.scatter(test_frame_poses[:, 0], test_frame_poses[:, 1], c='blue', s=5, label='trajectory')
+        plt.scatter(top_n_keyframe_poses[:, 0], top_n_keyframe_poses[:, 1], c='pink', s=40, label='top n choices')
+        plt.scatter(test_frame_poses[idx, 0], test_frame_poses[idx, 1], c='green', s=20, label='positive prediction')
+        plt.show()
 
 
 def testHandler(keyframe_path, test_frame_path, weights_path, test_selection=1, load_descriptors=False):
@@ -254,11 +274,13 @@ def testHandler(keyframe_path, test_frame_path, weights_path, test_selection=1, 
         keyframe_voronoi_region, voronoi_map = calc_voronoi_map(keyframe_locs)
 
         # calculate the top n choices
-        precision, pos_pred, neg_pred = calc_top_n(keyframe_locs, keyframe_descriptors, keyframe_voronoi_region,
-                                                   test_frame_locs, test_frame_descriptors)
+        precision, positive_pred, negative_pred, positive_pred_indices, negative_pred_indices, top_n_choices = \
+            calc_top_n(keyframe_locs, keyframe_descriptors, keyframe_voronoi_region, test_frame_locs,
+                       test_frame_descriptors)
 
         # show the result
-        prediction_plot(voronoi_map, pos_pred, neg_pred)
+        # prediction_plot(voronoi_map, positive_pred, negative_pred)
+        top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_locs, test_frame_locs)
 
 
 def keyframe_poses_plot(poses, keyframe_poses, dim=2):
