@@ -16,17 +16,18 @@ valid_config:
   valid_scan_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop/depth"
   gt_valid_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop/overlaps/overlaps_val"
 
-#test_config:
-#  test_seqs: ["royce_hall"]
-#  test_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/royce_hall"
-#  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer37.pth.tar"
-#  keyframes: "/home/vectr/Documents/Dataset/overlap_transformer//keyframes/royce_hall"
-
 test_config:
-  test_seqs: ["botanical_garden"]
-  test_folder: "/Users/yanlong/PycharmProjects/ot_sync/test/botanical_garden"
-  test_weights: "/Users/yanlong/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer37.pth.tar"
-  keyframes: "/Users/yanlong/PycharmProjects/ot_sync/keyframes/botanical_garden"
+  test_seqs: ["geo_loop"]
+  test_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop"
+  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer_full_test49.pth.tar"
+  keyframes: "/home/vectr/Documents/Dataset/overlap_transformer/keyframes/geo_loop"
+  descriptors: "/home/vectr/Documents/Dataset/overlap_transformer/descriptors/geo_loop"
+
+#test_config:
+#  test_seqs: ["botanical_garden"]
+#  test_folder: "/Users/yanlong/PycharmProjects/ot_sync/test/botanical_garden"
+#  test_weights: "/Users/yanlong/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer37.pth.tar"
+#  keyframes: "/Users/yanlong/PycharmProjects/ot_sync/keyframes/botanical_garden"
 
 #test_config:
 #  test_seqs: ["botanical_garden"]

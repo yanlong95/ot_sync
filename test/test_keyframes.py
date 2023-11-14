@@ -6,6 +6,8 @@ if p not in sys.path:
     sys.path.append(p)
 
 from matplotlib import pyplot as plt
+from matplotlib import colormaps
+import matplotlib
 import torch
 import numpy as np
 from scipy.spatial import Voronoi, voronoi_plot_2d, Delaunay, transform
@@ -41,7 +43,7 @@ def load_keyframes(keyframe_path):
     return keyframe_images, keyframe_poses
 
 
-def load_test_frames(test_frame_path, selection_ratio=1):
+def load_test_frames(test_frame_path):
     test_frame_images_path = os.path.join(test_frame_path, 'depth')
     test_frame_poses_path = os.path.join(test_frame_path, 'poses/poses.txt')
 
@@ -49,6 +51,18 @@ def load_test_frames(test_frame_path, selection_ratio=1):
     test_frame_poses = load_poses(test_frame_poses_path)
 
     return test_frame_images, test_frame_poses
+
+
+# load test frame ground truth overlaps for debugging
+def load_test_frame_overlaps(test_frame_path):
+    test_frame_overlaps_path = os.path.join(test_frame_path, 'overlaps')
+    test_frame_overlaps = []
+    for i in range(len(test_frame_overlaps_path)):
+        test_frame_overlap_path = os.path.join(test_frame_overlaps_path, f'{str(i).zfill(6)}.npy')
+        test_frame_overlap = np.load(test_frame_overlap_path)
+        test_frame_overlaps.append(test_frame_overlap)
+
+    return test_frame_overlaps
 
 
 # The ground truth based on the location of the keyframes (e.g. choose the closest top n keyframes based on the
@@ -221,18 +235,32 @@ def prediction_plot(voronoi_map, positive_pred, negative_pred):
 
 def top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_poses, test_frame_poses):
 
-    for idx in positive_pred_indices:
+    # for idx in positive_pred_indices:
+    #     top_n_choice = top_n_choices[idx]
+    #     top_n_keyframe_poses = np.array([keyframe_poses[i][:2] for i in top_n_choice])
+    #
+    #     plt.clf()
+    #     plt.scatter(test_frame_poses[:, 0], test_frame_poses[:, 1], c='blue', s=5, label='trajectory')
+    #     plt.scatter(keyframe_poses[:, 0], keyframe_poses[:, 1], c='gold', s=10, label='keyframes')
+    #     plt.scatter(top_n_keyframe_poses[:, 0], top_n_keyframe_poses[:, 1], c='pink', s=40, label='top n choices')
+    #     plt.scatter(test_frame_poses[idx, 0], test_frame_poses[idx, 1], c='green', s=20, label='positive prediction')
+    #     plt.show()
+
+    for idx in negative_pred_indices:
         top_n_choice = top_n_choices[idx]
         top_n_keyframe_poses = np.array([keyframe_poses[i][:2] for i in top_n_choice])
 
+        plt.figure(1)
+
         plt.clf()
         plt.scatter(test_frame_poses[:, 0], test_frame_poses[:, 1], c='blue', s=5, label='trajectory')
+        plt.scatter(keyframe_poses[:, 0], keyframe_poses[:, 1], c='gold', s=10, label='keyframes')
         plt.scatter(top_n_keyframe_poses[:, 0], top_n_keyframe_poses[:, 1], c='pink', s=40, label='top n choices')
-        plt.scatter(test_frame_poses[idx, 0], test_frame_poses[idx, 1], c='green', s=20, label='positive prediction')
+        plt.scatter(test_frame_poses[idx, 0], test_frame_poses[idx, 1], c='red', s=20, label='negative prediction')
         plt.show()
 
 
-def testHandler(keyframe_path, test_frame_path, weights_path, test_selection=1, load_descriptors=False):
+def testHandler(keyframe_path, test_frame_path, weights_path, descriptors_path, test_selection=1, load_descriptors=False):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     amodel = featureExtracter(height=32, width=900, channels=1, use_transformer=True).to(device)
 
@@ -251,8 +279,8 @@ def testHandler(keyframe_path, test_frame_path, weights_path, test_selection=1, 
         test_frame_locs = test_frame_locs_full[::test_selection]
 
         if load_descriptors:
-            keyframe_descriptors = np.load('/Users/yanlong/PycharmProjects/ot_sync/descriptors/keyframe_descriptors.npy')
-            test_frame_descriptors = np.load('/Users/yanlong/PycharmProjects/ot_sync/descriptors/test_frame_descriptors.npy')
+            keyframe_descriptors = np.load(os.path.join(descriptors_path, 'keyframe_descriptors.npy'))
+            test_frame_descriptors = np.load(os.path.join(descriptors_path, 'test_frame_descriptors.npy'))
         else:
             print('calculating descriptors for keyframe ...')
             keyframe_descriptors = calc_descriptors(keyframe_images, amodel)
@@ -264,8 +292,8 @@ def testHandler(keyframe_path, test_frame_path, weights_path, test_selection=1, 
             # select 1 sample per test_selection samples, reduce the test size
             test_frame_descriptors = test_frame_descriptors_full[::test_selection]
 
-            np.save('/Users/yanlong/PycharmProjects/ot_sync/descriptors/keyframe_descriptors', keyframe_descriptors)
-            np.save('/Users/yanlong/PycharmProjects/ot_sync/descriptors/test_frame_descriptors', test_frame_descriptors)
+            np.save(os.path.join(descriptors_path, 'keyframe_descriptors'), keyframe_descriptors)
+            np.save(os.path.join(descriptors_path, 'test_frame_descriptors'), test_frame_descriptors)
 
         # test 2d plot
         # keyframe_poses_plot(test_frame_locs_full, keyframe_locs)
@@ -280,8 +308,9 @@ def testHandler(keyframe_path, test_frame_path, weights_path, test_selection=1, 
 
         # show the result
         # prediction_plot(voronoi_map, positive_pred, negative_pred)
+        test_frame_overlaps = load_test_frame_overlaps(test_frame_path)
         top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_locs, test_frame_locs)
-
+        # TODO: load ground truth to check the problem
 
 def keyframe_poses_plot(poses, keyframe_poses, dim=2):
     if dim == 2:
@@ -308,6 +337,30 @@ def keyframe_poses_plot(poses, keyframe_poses, dim=2):
         raise "Error: dimension must be 2 or 3."
 
 
+def overlap_plot(xys, ground_truth_mapping):
+    """Visualize the overlap value on trajectory"""
+    # set up plot
+    fig, ax = plt.subplots()
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=1, clip=True)
+    mapper = colormaps.ScalarMappable(norm=norm)  # cmap="magma"
+    mapper.set_array(ground_truth_mapping[:, 2])
+    colors = np.array([mapper.to_rgba(a) for a in ground_truth_mapping[:, 2]])
+
+    # sort according to overlap
+    indices = np.argsort(ground_truth_mapping[:, 2])
+    xys = xys[indices]
+
+    ax.scatter(xys[:, 0], xys[:, 1], c=colors[indices], s=10)
+
+    ax.axis('square')
+    ax.set_xlabel('X [m]')
+    ax.set_ylabel('Y [m]')
+    ax.set_title('Overlap Map')
+    cbar = fig.colorbar(mapper, ax=ax)
+    cbar.set_label('Overlap', rotation=270, weight='bold')
+    plt.show()
+
+
 if __name__ == '__main__':
     # load config ================================================================
     config_filename = '../config/config_os1_rewrite.yml'
@@ -316,6 +369,8 @@ if __name__ == '__main__':
     test_folder_path = config["test_config"]["test_folder"]
     test_weights_path = config["test_config"]["test_weights"]
     keyframe_path = config["test_config"]["keyframes"]
+    descriptors_path = config["test_config"]["descriptors"]
     # ============================================================================
 
-    testHandler(keyframe_path, test_folder_path, test_weights_path, test_selection=10, load_descriptors=True)
+    testHandler(keyframe_path, test_folder_path, test_weights_path, descriptors_path, test_selection=10,
+                load_descriptors=True)
