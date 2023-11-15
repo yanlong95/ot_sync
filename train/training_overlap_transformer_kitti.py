@@ -60,7 +60,7 @@ class trainHandler():
             overlap_orientation_npz_file2string_string_nparray(self.traindata_npzfiles)
 
         """change the args for resuming training process"""
-        self.resume = True
+        self.resume = False
         self.save_name = "../weights/pretrained_overlap_transformer_full_test22.pth.tar"
 
         """overlap threshold follows OverlapNet"""
@@ -82,7 +82,7 @@ class trainHandler():
 
         writer1 = SummaryWriter(comment="LR_0.xxxx")
 
-        for i in range(starting_epoch+1, epochs):
+        for i in range(starting_epoch+1, epochs+1):
             (self.train_imgf1, self.train_imgf2, self.train_dir1, self.train_dir2, self.train_overlap) = \
                 overlap_orientation_npz_file2string_string_nparray(self.traindata_npzfiles, shuffle=True)
 
@@ -233,7 +233,7 @@ if __name__ == '__main__':
     # train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.000005,
     #                              data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
 
-    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.00005,
+    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.0001,
                                  data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
 
     train_handler.train()

@@ -6,7 +6,6 @@ if p not in sys.path:
     sys.path.append(p)
 
 from matplotlib import pyplot as plt
-from matplotlib import colormaps
 import matplotlib
 import torch
 import numpy as np
@@ -54,12 +53,12 @@ def load_test_frames(test_frame_path):
 
 
 # load test frame ground truth overlaps for debugging
-def load_test_frame_overlaps(test_frame_path):
-    test_frame_overlaps_path = os.path.join(test_frame_path, 'overlaps')
+def load_test_frame_overlaps(test_frames_path):
+    test_frame_overlaps_folder = os.path.join(test_frames_path, 'overlaps_test')
+    test_frame_overlaps_path = load_files(test_frame_overlaps_folder)
     test_frame_overlaps = []
     for i in range(len(test_frame_overlaps_path)):
-        test_frame_overlap_path = os.path.join(test_frame_overlaps_path, f'{str(i).zfill(6)}.npy')
-        test_frame_overlap = np.load(test_frame_overlap_path)
+        test_frame_overlap = np.load(test_frame_overlaps_path[i])
         test_frame_overlaps.append(test_frame_overlap)
 
     return test_frame_overlaps
@@ -233,34 +232,44 @@ def prediction_plot(voronoi_map, positive_pred, negative_pred):
     # plt.scatter(vertex[:, 0], vertex[:, 1], c='r', s=100, label='vertices')
 
 
-def top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_poses, test_frame_poses):
-
-    # for idx in positive_pred_indices:
-    #     top_n_choice = top_n_choices[idx]
-    #     top_n_keyframe_poses = np.array([keyframe_poses[i][:2] for i in top_n_choice])
-    #
-    #     plt.clf()
-    #     plt.scatter(test_frame_poses[:, 0], test_frame_poses[:, 1], c='blue', s=5, label='trajectory')
-    #     plt.scatter(keyframe_poses[:, 0], keyframe_poses[:, 1], c='gold', s=10, label='keyframes')
-    #     plt.scatter(top_n_keyframe_poses[:, 0], top_n_keyframe_poses[:, 1], c='pink', s=40, label='top n choices')
-    #     plt.scatter(test_frame_poses[idx, 0], test_frame_poses[idx, 1], c='green', s=20, label='positive prediction')
-    #     plt.show()
-
+def top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_poses, test_frame_poses,
+                         test_frame_poses_full, test_frame_overlaps):
     for idx in negative_pred_indices:
+        # load the top n keyframes poses for current frame
         top_n_choice = top_n_choices[idx]
         top_n_keyframe_poses = np.array([keyframe_poses[i][:2] for i in top_n_choice])
 
-        plt.figure(1)
+        # load ground truth overlap for current frame
+        test_frame_overlap = test_frame_overlaps[idx][:, 2]
+        test_frame_indices = np.argsort(test_frame_overlap)
+        test_frame_poses_sorted = test_frame_poses_full[test_frame_indices]
 
-        plt.clf()
-        plt.scatter(test_frame_poses[:, 0], test_frame_poses[:, 1], c='blue', s=5, label='trajectory')
-        plt.scatter(keyframe_poses[:, 0], keyframe_poses[:, 1], c='gold', s=10, label='keyframes')
-        plt.scatter(top_n_keyframe_poses[:, 0], top_n_keyframe_poses[:, 1], c='pink', s=40, label='top n choices')
-        plt.scatter(test_frame_poses[idx, 0], test_frame_poses[idx, 1], c='red', s=20, label='negative prediction')
+        # plot
+        plt.figure(1)
+        norm = matplotlib.colors.Normalize(vmin=0, vmax=1, clip=True)
+        mapper = matplotlib.cm.ScalarMappable(norm=norm)
+        mapper.set_array(test_frame_overlap)
+        colors = np.array([mapper.to_rgba(a) for a in test_frame_overlap])
+
+        test_frame_indices = np.argsort(test_frame_overlap)
+        poses = test_frame_poses_full[test_frame_indices]
+
+        plt.scatter(poses[:, 0], poses[:, 1], c=colors[test_frame_indices], s=10)
+        plt.scatter(keyframe_poses[:, 0], keyframe_poses[:, 1], c='tan', s=5, label='keyframes')
+        plt.scatter(top_n_keyframe_poses[:, 0], top_n_keyframe_poses[:, 1], c='magenta', s=5, label='top n choices')
+        plt.scatter(test_frame_poses[idx, 0], test_frame_poses[idx, 1], c='orange', s=20, label='current location')
+
+        plt.axis('square')
+        plt.xlabel('X [m]')
+        plt.ylabel('Y [m]')
+        plt.title('Overlap Map')
+        plt.legend()
+        cbar = plt.colorbar(mapper)
+        cbar.set_label('Overlap', rotation=270, weight='bold')
         plt.show()
 
 
-def testHandler(keyframe_path, test_frame_path, weights_path, descriptors_path, test_selection=1, load_descriptors=False):
+def testHandler(keyframe_path, test_frames_path, weights_path, descriptors_path, test_selection=1, load_descriptors=False):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     amodel = featureExtracter(height=32, width=900, channels=1, use_transformer=True).to(device)
 
@@ -272,11 +281,13 @@ def testHandler(keyframe_path, test_frame_path, weights_path, descriptors_path, 
 
         # calculate ground truth and descriptors
         keyframe_images, keyframe_poses = load_keyframes(keyframe_path)
-        test_frame_images, test_frame_poses = load_test_frames(test_frame_path)
+        test_frame_images, test_frame_poses = load_test_frames(test_frames_path)
+        test_frame_overlaps_full = load_test_frame_overlaps(test_frames_path)
 
         keyframe_locs, _ = calc_ground_truth(keyframe_poses)
         test_frame_locs_full, _ = calc_ground_truth(test_frame_poses)
         test_frame_locs = test_frame_locs_full[::test_selection]
+        test_frame_overlaps = test_frame_overlaps_full[::test_selection]
 
         if load_descriptors:
             keyframe_descriptors = np.load(os.path.join(descriptors_path, 'keyframe_descriptors.npy'))
@@ -308,8 +319,8 @@ def testHandler(keyframe_path, test_frame_path, weights_path, descriptors_path, 
 
         # show the result
         # prediction_plot(voronoi_map, positive_pred, negative_pred)
-        test_frame_overlaps = load_test_frame_overlaps(test_frame_path)
-        top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_locs, test_frame_locs)
+        top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_locs,
+                             test_frame_locs, test_frame_locs_full, test_frame_overlaps)
         # TODO: load ground truth to check the problem
 
 def keyframe_poses_plot(poses, keyframe_poses, dim=2):
@@ -337,40 +348,15 @@ def keyframe_poses_plot(poses, keyframe_poses, dim=2):
         raise "Error: dimension must be 2 or 3."
 
 
-def overlap_plot(xys, ground_truth_mapping):
-    """Visualize the overlap value on trajectory"""
-    # set up plot
-    fig, ax = plt.subplots()
-    norm = matplotlib.colors.Normalize(vmin=0, vmax=1, clip=True)
-    mapper = colormaps.ScalarMappable(norm=norm)  # cmap="magma"
-    mapper.set_array(ground_truth_mapping[:, 2])
-    colors = np.array([mapper.to_rgba(a) for a in ground_truth_mapping[:, 2]])
-
-    # sort according to overlap
-    indices = np.argsort(ground_truth_mapping[:, 2])
-    xys = xys[indices]
-
-    ax.scatter(xys[:, 0], xys[:, 1], c=colors[indices], s=10)
-
-    ax.axis('square')
-    ax.set_xlabel('X [m]')
-    ax.set_ylabel('Y [m]')
-    ax.set_title('Overlap Map')
-    cbar = fig.colorbar(mapper, ax=ax)
-    cbar.set_label('Overlap', rotation=270, weight='bold')
-    plt.show()
-
-
 if __name__ == '__main__':
     # load config ================================================================
     config_filename = '../config/config_os1_rewrite.yml'
     config = yaml.safe_load(open(config_filename))
     test_seq = config["test_config"]["test_seqs"][0]
-    test_folder_path = config["test_config"]["test_folder"]
+    test_frames_path = config["test_config"]["test_frames"]
     test_weights_path = config["test_config"]["test_weights"]
-    keyframe_path = config["test_config"]["keyframes"]
-    descriptors_path = config["test_config"]["descriptors"]
+    test_keyframe_path = config["test_config"]["test_keyframes"]
+    test_descriptors_path = config["test_config"]["test_descriptors"]
     # ============================================================================
-
-    testHandler(keyframe_path, test_folder_path, test_weights_path, descriptors_path, test_selection=10,
+    testHandler(test_keyframe_path, test_frames_path, test_weights_path, test_descriptors_path, test_selection=10,
                 load_descriptors=True)

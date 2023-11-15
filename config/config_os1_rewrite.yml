@@ -18,10 +18,10 @@ valid_config:
 
 test_config:
   test_seqs: ["geo_loop"]
-  test_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop"
-  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer_full_test49.pth.tar"
-  keyframes: "/home/vectr/Documents/Dataset/overlap_transformer/keyframes/geo_loop"
-  descriptors: "/home/vectr/Documents/Dataset/overlap_transformer/descriptors/geo_loop"
+  test_frames: "/home/vectr/Documents/Dataset/overlap_transformer/test/geo_loop"
+  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/best/pretrained_overlap_transformer_full_test49.pth.tar"
+  test_keyframes: "/home/vectr/Documents/Dataset/overlap_transformer/keyframes/geo_loop"
+  test_descriptors: "/home/vectr/Documents/Dataset/overlap_transformer/descriptors/geo_loop"
 
 #test_config:
 #  test_seqs: ["botanical_garden"]
