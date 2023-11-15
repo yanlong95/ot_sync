@@ -155,12 +155,12 @@ def calc_voronoi_map(keyframe_poses):
     return delaunay_triangulation, voronoi
 
 
-def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, test_frame_poses, test_frame_descriptors):
+def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, test_frame_poses, test_frame_descriptors,
+               top_n=5):
     num_test_frame = len(test_frame_poses)
 
     # initial searching
     nlist = 1
-    k = 5
     dim_pose = 3
     dim_descriptor = 256
 
@@ -190,15 +190,15 @@ def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, te
         curr_frame_descriptor = test_frame_descriptors[curr_frame_idx, :].reshape(1, -1)
 
         # searching top n poses and descriptors
-        D_pose, I_pose = index_poses.search(curr_frame_pose, k)
-        D_descriptor, I_descriptor = index_descriptors.search(curr_frame_descriptor, k)
+        D_pose, I_pose = index_poses.search(curr_frame_pose, top_n)
+        D_descriptor, I_descriptor = index_descriptors.search(curr_frame_descriptor, top_n)
 
         # determine if a point inside the regions
         top_n_keyframes_indices = I_descriptor[0]
         top_n_keyframes_regions = [keyframe_voronoi_region[idx] for idx in top_n_keyframes_indices]
         top_n_choices.append(top_n_keyframes_indices)
 
-        for idx in range(k):
+        for idx in range(top_n):
             pos_2d = curr_frame_pose[0][:2]
             region = top_n_keyframes_regions[idx]
 
@@ -251,10 +251,7 @@ def top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_cho
         mapper.set_array(test_frame_overlap)
         colors = np.array([mapper.to_rgba(a) for a in test_frame_overlap])
 
-        test_frame_indices = np.argsort(test_frame_overlap)
-        poses = test_frame_poses_full[test_frame_indices]
-
-        plt.scatter(poses[:, 0], poses[:, 1], c=colors[test_frame_indices], s=10)
+        plt.scatter(test_frame_poses_sorted[:, 0], test_frame_poses_sorted[:, 1], c=colors[test_frame_indices], s=10)
         plt.scatter(keyframe_poses[:, 0], keyframe_poses[:, 1], c='tan', s=5, label='keyframes')
         plt.scatter(top_n_keyframe_poses[:, 0], top_n_keyframe_poses[:, 1], c='magenta', s=5, label='top n choices')
         plt.scatter(test_frame_poses[idx, 0], test_frame_poses[idx, 1], c='orange', s=20, label='current location')
@@ -315,13 +312,14 @@ def testHandler(keyframe_path, test_frames_path, weights_path, descriptors_path,
         # calculate the top n choices
         precision, positive_pred, negative_pred, positive_pred_indices, negative_pred_indices, top_n_choices = \
             calc_top_n(keyframe_locs, keyframe_descriptors, keyframe_voronoi_region, test_frame_locs,
-                       test_frame_descriptors)
+                       test_frame_descriptors, top_n=5)
 
         # show the result
         # prediction_plot(voronoi_map, positive_pred, negative_pred)
         top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_locs,
                              test_frame_locs, test_frame_locs_full, test_frame_overlaps)
-        # TODO: load ground truth to check the problem
+        # TODO: 1. check if the keyframe images are right by computing the overlap directly (not loading).
+        # TODO: 2. check why the descriptors are not correct.
 
 def keyframe_poses_plot(poses, keyframe_poses, dim=2):
     if dim == 2:
