@@ -1,0 +1,21 @@
+range_images_folder:
+  data_root_folder: "/media/vectr/T7/Dataset/overlap_transformer/png_files/"
+
+ground_truth_folder:
+  data_root_folder: "/media/vectr/T7/Dataset/overlap_transformer/gt_overlap/"
+
+training_config:
+  training_seqs: [ "bomb_shelter", "botanical_garden", "bruin_plaza", "court_of_sciences", "dickson_court", "kerckhoff",
+                   "luskin" ]
+
+valid_config:
+  valid_seqs: ["geo_loop"]
+  valid_scan_folder: "/media/vectr/T7/Dataset/overlap_transformer/png_files/geo_loop/depth"
+  gt_valid_folder: "/media/vectr/T7/Dataset/overlap_transformer/gt_overlap/geo_loop/overlaps_val"
+
+test_config:
+  test_seqs: ["geo_loop"]
+  test_frames: "/media/vectr/Documents/Dataset/overlap_transformer/test_time/geo_loop"
+  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer_full_test50.pth.tar"
+  test_keyframes: "/media/vectr/Documents/Dataset/overlap_transformer/keyframes/geo_loop"
+  test_descriptors: "/media/vectr/Documents/Dataset/overlap_transformer/descriptors/geo_loop"

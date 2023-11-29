@@ -159,7 +159,7 @@ def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, te
                top_n=5):
     num_test_frame = len(test_frame_poses)
 
-    # initial searching
+    # initialize searching
     nlist = 1
     dim_pose = 3
     dim_descriptor = 256
@@ -190,7 +190,7 @@ def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, te
         curr_frame_descriptor = test_frame_descriptors[curr_frame_idx, :].reshape(1, -1)
 
         # searching top n poses and descriptors
-        D_pose, I_pose = index_poses.search(curr_frame_pose, top_n)
+        # D_pose, I_pose = index_poses.search(curr_frame_pose, top_n)
         D_descriptor, I_descriptor = index_descriptors.search(curr_frame_descriptor, top_n)
 
         # determine if a point inside the regions
@@ -207,7 +207,7 @@ def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, te
                 positive_pred_indices.append(curr_frame_idx)
                 break
 
-            if idx == k - 1:
+            if idx == top_n - 1:
                 negative_pred.append(pos_2d)
                 negative_pred_indices.append(curr_frame_idx)
 
@@ -217,7 +217,7 @@ def calc_top_n(keyframe_poses, keyframe_descriptors, keyframe_voronoi_region, te
     return precision, positive_pred, negative_pred, positive_pred_indices, negative_pred_indices, top_n_choices
 
 
-def prediction_plot(voronoi_map, positive_pred, negative_pred):
+def plot_prediction(voronoi_map, positive_pred, negative_pred):
     fig = voronoi_plot_2d(voronoi_map)
     positive_points = np.array(positive_pred)
     negative_points = np.array(negative_pred)
@@ -232,7 +232,7 @@ def prediction_plot(voronoi_map, positive_pred, negative_pred):
     # plt.scatter(vertex[:, 0], vertex[:, 1], c='r', s=100, label='vertices')
 
 
-def top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_poses, test_frame_poses,
+def plot_top_n_keyframes(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_poses, test_frame_poses,
                          test_frame_poses_full, test_frame_overlaps):
     for idx in negative_pred_indices:
         # load the top n keyframes poses for current frame
@@ -263,6 +263,7 @@ def top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_cho
         plt.legend()
         cbar = plt.colorbar(mapper)
         cbar.set_label('Overlap', rotation=270, weight='bold')
+
         plt.show()
 
 
@@ -304,7 +305,7 @@ def testHandler(keyframe_path, test_frames_path, weights_path, descriptors_path,
             np.save(os.path.join(descriptors_path, 'test_frame_descriptors'), test_frame_descriptors)
 
         # test 2d plot
-        # keyframe_poses_plot(test_frame_locs_full, keyframe_locs)
+        # plot_keyframe_poses(test_frame_locs_full, keyframe_locs)
 
         # test voronoi map
         keyframe_voronoi_region, voronoi_map = calc_voronoi_map(keyframe_locs)
@@ -315,13 +316,14 @@ def testHandler(keyframe_path, test_frames_path, weights_path, descriptors_path,
                        test_frame_descriptors, top_n=5)
 
         # show the result
-        # prediction_plot(voronoi_map, positive_pred, negative_pred)
-        top_n_keyframes_plot(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_locs,
+        plot_prediction(voronoi_map, positive_pred, negative_pred)
+        plot_top_n_keyframes(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_locs,
                              test_frame_locs, test_frame_locs_full, test_frame_overlaps)
         # TODO: 1. check if the keyframe images are right by computing the overlap directly (not loading).
         # TODO: 2. check why the descriptors are not correct.
 
-def keyframe_poses_plot(poses, keyframe_poses, dim=2):
+
+def plot_keyframe_poses(poses, keyframe_poses, dim=2):
     if dim == 2:
         x = poses[:, 0]
         y = poses[:, 1]
@@ -337,6 +339,7 @@ def keyframe_poses_plot(poses, keyframe_poses, dim=2):
         plt.xlabel('x')
         plt.ylabel('y')
         plt.legend()
+        plt.axis('equal')
 
         plt.show()
 

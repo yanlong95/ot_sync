@@ -60,11 +60,12 @@ class trainHandler():
             overlap_orientation_npz_file2string_string_nparray(self.traindata_npzfiles)
 
         """change the args for resuming training process"""
-        self.resume = False
-        self.save_name = "../weights/pretrained_overlap_transformer_full_test22.pth.tar"
+        self.resume = True
+        # self.save_name = "../weights/pretrained_overlap_transformer_full_test20.pth.tar"
+        self.save_name = '/media/vectr/T7/Dataset/overlap_transformer/weights/pretrained_overlap_transformer_0.2_1.pth.tar'
 
         """overlap threshold follows OverlapNet"""
-        self.overlap_thresh = 0.3
+        self.overlap_thresh = 0.2
 
     def train(self):
         epochs = 50
@@ -130,8 +131,8 @@ class trainHandler():
                     the balance of positive samples and negative samples.
                     TODO: Update for better training results
                 """
-                use_pos_num = 6
-                use_neg_num = 6
+                use_pos_num = 8
+                use_neg_num = 8
                 if pos_num >= use_pos_num and neg_num >= use_neg_num:
                     sample_batch = torch.cat((sample_batch[0:use_pos_num, :, :, :], sample_batch[pos_num:pos_num + use_neg_num, :, :, :]), dim=0)
                     sample_truth = torch.cat((sample_truth[0:use_pos_num, :], sample_truth[pos_num:pos_num+use_neg_num, :]), dim=0)
@@ -187,7 +188,7 @@ class trainHandler():
 
             """save trained weights and optimizer states"""
             # self.save_name = "../weights/pretrained_overlap_transformer"+str(i)+".pth.tar"
-            self.save_name = "../weights/pretrained_overlap_transformer_full_test"+str(i)+".pth.tar"
+            self.save_name = "/media/vectr/T7/Dataset/overlap_transformer/weights/pretrained_overlap_transformer_0.2_"+str(i)+".pth.tar"
 
             torch.save({
                 'epoch': i,
@@ -203,7 +204,7 @@ class trainHandler():
             with torch.no_grad():
                 # top1_rate = validate_seq_faiss(self.amodel, "02")
                 # top1_rate = validate_seq_faiss(self.amodel, "botanical_garden")
-                top10_rate = validation(self.amodel)
+                top10_rate = validation(self.amodel, overlap_threshold=self.overlap_thresh)
                 writer1.add_scalar("top10_rate", top10_rate, global_step=i)
 
 
@@ -211,12 +212,14 @@ if __name__ == '__main__':
     # load config ================================================================
     config_filename = '../config/config_os1_rewrite.yml'
     config = yaml.safe_load(open(config_filename))
-    data_root_folder = config["data_root"]["data_root_folder"]
+    range_images_folder = config["range_images_folder"]["data_root_folder"]
+    ground_truth_folder = config["ground_truth_folder"]["data_root_folder"]
     training_seqs = config["training_config"]["training_seqs"]
     # ============================================================================
 
     # along the lines of OverlapNet
-    traindata_npzfiles = [os.path.join(data_root_folder, seq, 'overlaps/train_set.npz') for seq in training_seqs]
+    traindata_npzfiles = [os.path.join(ground_truth_folder, seq, 'train_set.npz') for seq in training_seqs]
+
     """
         trainHandler to handle with training process.
         Args:
@@ -230,10 +233,41 @@ if __name__ == '__main__':
             train_set: traindata_npzfiles (alone the lines of OverlapNet).
             training_seqs: sequences number for training (alone the lines of OverlapNet).
     """
-    # train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.000005,
-    #                              data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
-
-    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.0001,
-                                 data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
-
+    train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.00005,
+                                 data_root_folder=range_images_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
     train_handler.train()
+
+
+    # # load config ================================================================
+    # config_filename = '../config/config_os1_rewrite.yml'
+    # config = yaml.safe_load(open(config_filename))
+    # data_root_folder = config["data_root"]["data_root_folder"]
+    # training_seqs = config["training_config"]["training_seqs"]
+    # # ============================================================================
+    #
+    # # along the lines of OverlapNet
+    # traindata_npzfiles = [os.path.join(data_root_folder, seq, 'overlaps/train_set.npz') for seq in training_seqs]
+    #
+    # """
+    #     trainHandler to handle with training process.
+    #     Args:
+    #         height: the height of the range image (the beam number for convenience).
+    #         width: the width of the range image (900, alone the lines of OverlapNet).
+    #         channels: 1 for depth only in our work.
+    #         norm_layer: None in our work for better model.
+    #         use_transformer: Whether to use MHSA.
+    #         lr: learning rate, which needs to fine tune while training for the best performance.
+    #         data_root_folder: root of KITTI sequences. It's better to follow our file structure.
+    #         train_set: traindata_npzfiles (alone the lines of OverlapNet).
+    #         training_seqs: sequences number for training (alone the lines of OverlapNet).
+    # """
+    # # train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.000005,
+    # #                              data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
+    # #
+    # # train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.0001,
+    # #                              data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
+    #
+    # train_handler = trainHandler(height=32, width=900, channels=1, norm_layer=None, use_transformer=True, lr=0.00005,
+    #                              data_root_folder=data_root_folder, train_set=traindata_npzfiles, training_seqs=training_seqs)
+    #
+    # train_handler.train()

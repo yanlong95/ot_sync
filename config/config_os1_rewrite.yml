@@ -1,43 +1,65 @@
-data_root:
-  # botanical_garden and court_of_science
-  data_root_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/"
-#  valid_scan_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/botanical_garden/depth"
-#  valid_scan_poses: "/home/vectr/Documents/Dataset/overlap_transformer/train/botanical_garden/poses/poses.txt"      # for visualization
-#  gt_valid_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/botanical_garden/overlaps/overlaps_val"
+#data_root:
+#  # botanical_garden and court_of_science
+#  data_root_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/"
+##  valid_scan_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/botanical_garden/depth"
+##  valid_scan_poses: "/home/vectr/Documents/Dataset/overlap_transformer/train/botanical_garden/poses/poses.txt"      # for visualization
+##  gt_valid_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/botanical_garden/overlaps/overlaps_val"
+#
+#training_config:
+#  # sequences for training (botanical_garden and cour_of_sciences)
+##  training_seqs: ["botanical_garden", "court_of_sciences"]
+#  training_seqs: [ "bomb_shelter", "botanical_garden", "bruin_plaza", "court_of_sciences", "dickson_court", "kerckhoff",
+#                   "luskin" ]
+#
+#valid_config:
+#  valid_seqs: ["geo_loop"]
+#  valid_scan_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop/depth"
+#  gt_valid_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop/overlaps/overlaps_val"
+#
+#test_config:
+#  test_seqs: ["geo_loop"]
+#  test_frames: "/home/vectr/Documents/Dataset/overlap_transformer/test/geo_loop"
+#  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer_full_test50.pth.tar"
+#  test_keyframes: "/home/vectr/Documents/Dataset/overlap_transformer/keyframes/geo_loop"
+#  test_descriptors: "/home/vectr/Documents/Dataset/overlap_transformer/descriptors/geo_loop"
+
+##test_config:
+##  test_seqs: ["botanical_garden"]
+##  test_folder: "/Users/yanlong/PycharmProjects/ot_sync/test/botanical_garden"
+##  test_weights: "/Users/yanlong/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer37.pth.tar"
+##  keyframes: "/Users/yanlong/PycharmProjects/ot_sync/keyframes/botanical_garden"
+#
+##test_config:
+##  test_seqs: ["botanical_garden"]
+##  test_weights: "/home/vectr/PycharmProjects/overlap_transformer/weights/"
+##  gt_file: "/home/vectr/Documents/Dataset/gt_overlap/botanical_garden_test/loop_gt_seq00_0.3overlap_inactive_20_60.npz"
+#
+##viz_config:
+##  # calibration file from KITTI 00
+##  calib_file: "/home/mjy/datasets/kitti/data_odometry_calib/dataset/sequences/00/calib.txt"
+##  # pose file from KITTI 00
+##  poses_file: "/home/mjy/datasets/kitti/data_odometry_poses/dataset/poses/00.txt"
+##  # covariance file from SUMA++ on KITTI 00
+##  cov_file: "/home/mjy/dev/OverlapNet++/kittiHandler/overlapnet_test00_methods/covariance_2nd.txt"
+
+range_images_folder:
+  data_root_folder: "/media/vectr/T7/Dataset/overlap_transformer/png_files/"
+
+ground_truth_folder:
+  data_root_folder: "/media/vectr/T7/Dataset/overlap_transformer/gt_overlap/"
 
 training_config:
-  # sequences for training (botanical_garden and cour_of_sciences)
-#  training_seqs: ["botanical_garden", "court_of_sciences"]
   training_seqs: [ "bomb_shelter", "botanical_garden", "bruin_plaza", "court_of_sciences", "dickson_court", "kerckhoff",
                    "luskin" ]
 
 valid_config:
   valid_seqs: ["geo_loop"]
-  valid_scan_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop/depth"
-  gt_valid_folder: "/home/vectr/Documents/Dataset/overlap_transformer/train/geo_loop/overlaps/overlaps_val"
+  valid_scan_folder: "/media/vectr/T7/Dataset/overlap_transformer/png_files/geo_loop/depth"
+  gt_valid_folder: "/media/vectr/T7/Dataset/overlap_transformer/gt_overlap/geo_loop/overlaps_val"
 
 test_config:
   test_seqs: ["geo_loop"]
   test_frames: "/home/vectr/Documents/Dataset/overlap_transformer/test/geo_loop"
-  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/best/pretrained_overlap_transformer_full_test49.pth.tar"
+  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer_full_test50.pth.tar"
   test_keyframes: "/home/vectr/Documents/Dataset/overlap_transformer/keyframes/geo_loop"
   test_descriptors: "/home/vectr/Documents/Dataset/overlap_transformer/descriptors/geo_loop"
-
-#test_config:
-#  test_seqs: ["botanical_garden"]
-#  test_folder: "/Users/yanlong/PycharmProjects/ot_sync/test/botanical_garden"
-#  test_weights: "/Users/yanlong/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer37.pth.tar"
-#  keyframes: "/Users/yanlong/PycharmProjects/ot_sync/keyframes/botanical_garden"
-
-#test_config:
-#  test_seqs: ["botanical_garden"]
-#  test_weights: "/home/vectr/PycharmProjects/overlap_transformer/weights/"
-#  gt_file: "/home/vectr/Documents/Dataset/gt_overlap/botanical_garden_test/loop_gt_seq00_0.3overlap_inactive_20_60.npz"
-
-#viz_config:
-#  # calibration file from KITTI 00
-#  calib_file: "/home/mjy/datasets/kitti/data_odometry_calib/dataset/sequences/00/calib.txt"
-#  # pose file from KITTI 00
-#  poses_file: "/home/mjy/datasets/kitti/data_odometry_poses/dataset/poses/00.txt"
-#  # covariance file from SUMA++ on KITTI 00
-#  cov_file: "/home/mjy/dev/OverlapNet++/kittiHandler/overlapnet_test00_methods/covariance_2nd.txt"

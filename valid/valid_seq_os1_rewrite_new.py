@@ -25,7 +25,7 @@ def read_image(path):
     return depth_data_tensor
 
 
-def validation(amodel):
+def validation(amodel, overlap_threshold):
     # ===============================================================================
     # loading paths and parameters
     config_filename = '../config/config_os1_rewrite.yml'
@@ -79,6 +79,7 @@ def validation(amodel):
         # search the closest descriptors for each one in the validation set
         top_n = 3
         num_pos_pred = 0
+        # num_neg_pred = 0
 
         scan_ids = np.arange(0, num_scans, 10)
         for i in range(num_valid):
@@ -86,18 +87,25 @@ def validation(amodel):
             ground_truth = np.load(ground_truth_paths[i])
 
             D, I = index.search(descriptors[scan_id, :].reshape(1, -1), k)
+            # D_reverse, I_reverse = index.search(descriptors[scan_id, :].reshape(1, -1), num_valid)
 
             if I[:, 0] == scan_id:
                 min_index = I[:, 1]
             else:
                 min_index = I[:, 0]
 
-            if ground_truth[min_index, 2] > 0.3:
+            if ground_truth[min_index, 2] > overlap_threshold:
                 num_pos_pred += 1
+
+            # max_index = I_reverse[:, -1]
+            # if ground_truth[max_index, 2] < overlap_threshold:
+            #     num_neg_pred += 1
 
     # precision = num_pos_pred / (top_n * num_valid)
     precision = num_pos_pred / num_valid
+    # precision_neg = num_neg_pred / num_valid
     print(f'top {top_n} precision: {precision}.')
+    # print(f'top {top_n} precision_neg: {precision_neg}')
     return precision
 
 
