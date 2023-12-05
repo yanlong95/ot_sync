@@ -15,7 +15,7 @@ valid_config:
 
 test_config:
   test_seqs: ["geo_loop"]
-  test_frames: "/media/vectr/Documents/Dataset/overlap_transformer/test_time/geo_loop"
-  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer_full_test50.pth.tar"
-  test_keyframes: "/media/vectr/Documents/Dataset/overlap_transformer/keyframes/geo_loop"
-  test_descriptors: "/media/vectr/Documents/Dataset/overlap_transformer/descriptors/geo_loop"
+  test_frames: "/media/vectr/T7/Dataset/overlap_transformer/test_time/geo_loop"
+  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/11_20/pretrained_overlap_transformer_full_test50.pth.tar"
+  test_keyframes: "/media/vectr/T7/Dataset/overlap_transformer/keyframes/geo_loop"
+  test_descriptors: "/media/vectr/T7/Dataset/overlap_transformer/descriptors/geo_loop"
