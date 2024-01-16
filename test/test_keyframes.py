@@ -301,6 +301,8 @@ def testHandler(keyframe_path, test_frames_path, weights_path, descriptors_path,
             # select 1 sample per test_selection samples, reduce the test size
             test_frame_descriptors = test_frame_descriptors_full[::test_selection]
 
+            if not os.path.exists(descriptors_path):
+                os.makedirs(descriptors_path)
             np.save(os.path.join(descriptors_path, 'keyframe_descriptors'), keyframe_descriptors)
             np.save(os.path.join(descriptors_path, 'test_frame_descriptors'), test_frame_descriptors)
 
@@ -319,8 +321,6 @@ def testHandler(keyframe_path, test_frames_path, weights_path, descriptors_path,
         plot_prediction(voronoi_map, positive_pred, negative_pred)
         plot_top_n_keyframes(positive_pred_indices, negative_pred_indices, top_n_choices, keyframe_locs,
                              test_frame_locs, test_frame_locs_full, test_frame_overlaps)
-        # TODO: 1. check if the keyframe images are right by computing the overlap directly (not loading).
-        # TODO: 2. check why the descriptors are not correct.
 
 
 def plot_keyframe_poses(poses, keyframe_poses, dim=2):
@@ -355,9 +355,14 @@ if __name__ == '__main__':
     config = yaml.safe_load(open(config_filename))
     test_seq = config["test_config"]["test_seqs"][0]
     test_frames_path = config["test_config"]["test_frames"]
-    test_weights_path = config["test_config"]["test_weights"]
     test_keyframe_path = config["test_config"]["test_keyframes"]
     test_descriptors_path = config["test_config"]["test_descriptors"]
+    test_weights_path = config["test_config"]["test_weights"]
     # ============================================================================
-    testHandler(test_keyframe_path, test_frames_path, test_weights_path, test_descriptors_path, test_selection=10,
-                load_descriptors=True)
+
+    test_frames_path_seq = os.path.join(test_frames_path, test_seq)
+    test_keyframe_path_seq = os.path.join(test_keyframe_path, test_seq)
+    test_descriptors_path_seq = os.path.join(test_descriptors_path, test_seq)
+
+    testHandler(test_keyframe_path_seq, test_frames_path_seq, test_weights_path, test_descriptors_path_seq, test_selection=10,
+                load_descriptors=False)

@@ -59,7 +59,15 @@ valid_config:
 
 test_config:
   test_seqs: ["geo_loop"]
-  test_frames: "/home/vectr/Documents/Dataset/overlap_transformer/test/geo_loop"
-  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer_full_test50.pth.tar"
-  test_keyframes: "/home/vectr/Documents/Dataset/overlap_transformer/keyframes/geo_loop"
-  test_descriptors: "/home/vectr/Documents/Dataset/overlap_transformer/descriptors/geo_loop"
+  test_frames: "/media/vectr/T7/Dataset/overlap_transformer/test/"
+  test_keyframes: "/media/vectr/T7/Dataset/overlap_transformer/keyframes/"
+  test_descriptors: "/media/vectr/T7/Dataset/overlap_transformer/descriptors/"
+  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/11_20/pretrained_overlap_transformer_full_test50.pth.tar"
+
+#test_config:
+#  test_seqs: ["geo_loop"]
+#  test_frames: "/home/vectr/Documents/Dataset/overlap_transformer/test/geo_loop"
+##  test_weights: "/home/vectr/PycharmProjects/ot_sync/weights/pretrained_overlap_transformer_full_test50.pth.tar"
+#  test_weights: "//media/vectr/T7/Dataset/overlap_transformer/weights/pretrained_overlap_transformer_0.2_50.pth.tar"
+#  test_keyframes: "/home/vectr/Documents/Dataset/overlap_transformer/keyframes_old/geo_loop"
+#  test_descriptors: "/home/vectr/Documents/Dataset/overlap_transformer/descriptors/geo_loop"

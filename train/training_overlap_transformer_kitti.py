@@ -62,7 +62,7 @@ class trainHandler():
         """change the args for resuming training process"""
         self.resume = True
         # self.save_name = "../weights/pretrained_overlap_transformer_full_test20.pth.tar"
-        self.save_name = '/media/vectr/T7/Dataset/overlap_transformer/weights/pretrained_overlap_transformer_0.2_1.pth.tar'
+        self.save_name = '/media/vectr/T7/Dataset/overlap_transformer/weights/pretrained_overlap_transformer_0.2_38.pth.tar'
 
         """overlap threshold follows OverlapNet"""
         self.overlap_thresh = 0.2
